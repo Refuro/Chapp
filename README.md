@@ -1,4 +1,4 @@
-# -Chapp
+# Chapp
 
 <h3><b>What is it?</b></h3>
 This Project is intended to be an application usable on a local network that can send and recieve messages from computer to computer.
