@@ -1,27 +1,65 @@
-// Chapp.cpp : This file contains the 'main' function. Program execution begins and ends there.
-//
-#include <winsock.h>
+#include <string>
 #include <iostream>
+#include <stdio.h>
+#include <winsock.h>
 
-int main()
+//Windows uses closesocket() instead of close(), select() only works with socket descriptors and not file descriptors
+int main(int argc , char *argv[])
 {
-    WSADATA wsaData;
+	WSADATA wsa;
+	SOCKET s , new_socket;
+	struct sockaddr_in server , client;
+	int c;
+	std::string message = "hey";
 
-    
-    if (WSAStartup(MAKEWORD(2, 0), &wsaData) != 0) {
-        fprintf(stderr, "WSAStartup failed.\n");
-        exit(1);
-    }
-    std::cout << "Hello World!\n";
+	printf("\nInitialising Winsock...");
+	if (WSAStartup(MAKEWORD(2,2),&wsa) != 0)
+	{
+		printf("Failed. Error Code : %d",WSAGetLastError());
+		return 1;
+	}
+	
+	printf("Initialised.\n");
+	
+	//Create a socket
+	if((s = socket(AF_INET , SOCK_STREAM , 0 )) == INVALID_SOCKET)
+	{
+		printf("Could not create socket : %d" , WSAGetLastError());
+	}
+
+	printf("Socket created.\n");
+	
+	//Prepare the sockaddr_in structure
+	server.sin_family = AF_INET;
+	server.sin_addr.s_addr = INADDR_ANY;
+	server.sin_port = htons( 8888 );
+	
+	//Bind
+	if( bind(s ,(struct sockaddr *)&server , sizeof(server)) == SOCKET_ERROR)
+	{
+		printf("Bind failed with error code : %d" , WSAGetLastError());
+	}
+	
+	puts("Bind done");
+
+	//Listen to incoming connections
+	listen(s , 3);
+	
+	//Accept and incoming connection
+	puts("Waiting for incoming connections...");
+	
+	c = sizeof(struct sockaddr_in);
+	new_socket = accept(s , (struct sockaddr *)&client, &c);
+	if (new_socket == INVALID_SOCKET)
+	{
+		printf("accept failed with error code : %d" , WSAGetLastError());
+	}
+	
+	puts("Connection accepted");
+
+
+	closesocket(s);
+	WSACleanup();
+	
+	return 0;
 }
-
-// Run program: Ctrl + F5 or Debug > Start Without Debugging menu
-// Debug program: F5 or Debug > Start Debugging menu
-
-// Tips for Getting Started: 
-//   1. Use the Solution Explorer window to add/manage files
-//   2. Use the Team Explorer window to connect to source control
-//   3. Use the Output window to see build output and other messages
-//   4. Use the Error List window to view errors
-//   5. Go to Project > Add New Item to create new code files, or Project > Add Existing Item to add existing code files to the project
-//   6. In the future, to open this project again, go to File > Open > Project and select the .sln file
